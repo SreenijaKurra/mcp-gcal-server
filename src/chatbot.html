@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Calendar Chatbot</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    #chatbox { width: 100%; height: 300px; border: 1px solid #ccc; padding: 1rem; overflow-y: auto; }
+    #userInput { width: 80%; padding: 0.5rem; }
+    #sendBtn { padding: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h2>Google Calendar Chatbot</h2>
+  <div id="chatbox"></div>
+  <input id="userInput" type="text" placeholder="Ask about your calendar..." />
+  <button id="sendBtn">Send</button>
+
+  <script>
+    const chatbox = document.getElementById('chatbox');
+    const input = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement('p');
+      msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+      chatbox.appendChild(msg);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    async function handleUserMessage() {
+      const userMsg = input.value;
+      appendMessage("You", userMsg);
+      input.value = "";
+
+      if (userMsg.toLowerCase().includes("events")) {
+        try {
+          const res = await fetch("http://localhost:4153/api/listEvents");
+          const data = await res.json();
+          if (data.events) {
+            const eventsText = data.events.map(ev => `${ev.summary} (${ev.start?.dateTime || ev.start?.date})`).join("<br>");
+            appendMessage("Bot", eventsText || "No events found.");
+          } else {
+            appendMessage("Bot", "Error: " + (data.error || "Unknown error"));
+          }
+        } catch (err) {
+          appendMessage("Bot", "Failed to fetch events.");
+        }
+      } else {
+        appendMessage("Bot", "I can only list your upcoming events. Try asking: 'What are my events?'");
+      }
+    }
+
+    sendBtn.addEventListener("click", handleUserMessage);
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") handleUserMessage();
+    });
+  </script>
+</body>
+</html>
