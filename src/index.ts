@@ -254,4 +254,4 @@ async function startMcpServer() {
   await mcp.connect(transport);
   console.log("MCP server connected via stdio transport");
 }
-startMcpServer().catch(console.error);
+startMcpServer().catch(console.error
